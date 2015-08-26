@@ -27,3 +27,6 @@ Initially results will be scored with a predefined algorithm known as the "mache
 **hapi.js** - Our framework of choice for routing and caching http requests [http://hapijs.com/](http://hapijs.com/).
 
 **Crossrider** - Tools for creating extensions that work in all browsers [http://crossrider.com/developers](http://crossrider.com/developers)
+
+## Collaborating
+The project is being organized on [Trello](https://trello.com/b/afOtDDrx/npm-machete) and discussion happens on [Slack](http://chat.nodejshouston.com/). Get involved!
