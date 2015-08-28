@@ -31,7 +31,7 @@ exports.register = function(server, options, next){
                         pullRequestsOpen: Joi.number().integer().min(0).max(10).default(5),
                         releases: Joi.number().integer().min(0).max(10).default(5),
                         stars: Joi.number().integer().min(0).max(10).default(5),
-                        tests: Joi.number().integer().min(0).max(10).default(5),
+                        tests: Joi.number().integer().min(0).max(10).default(5)
                     })
                 }
             },
@@ -42,7 +42,7 @@ exports.register = function(server, options, next){
     });
 
     next();
-}
+};
 
 exports.register.attributes = {
     name: 'search'
