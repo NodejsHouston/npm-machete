@@ -1,0 +1,38 @@
+{
+  "name": "npm-machete",
+  "version": "0.1.0",
+  "description": "npm-machete is an npm registry search tool.",
+  "main": "server/index.js",
+  "dependencies": {
+    "dotenv": "~1.2.0",
+    "elasticsearch": "~8.0.1",
+    "boom": "~2.8.0",
+    "good": "~6.3.0",
+    "good-console": "~5.0.3",
+    "hapi": "~9.0.3",
+    "joi": "~6.6.1"
+  },
+  "devDependencies": {
+    "code": "~1.5.0",
+    "lab": "~5.15.2",
+    "nodemon": "~1.4.1"
+  },
+  "scripts": {
+    "start": "node server",
+    "test": "lab -a code",
+    "dev": "nodemon server --verbose",
+    "pm2-start": "NODE_ENV=production pm2 start server --name 'npm-machete'",
+    "pm2-restart": "NODE_ENV=production pm2 restart npm-machete",
+    "pm2-stop": "NODE_ENV=production pm2 stop npm-machete"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://poeticninja@github.com/nodejshouston/npm-machete.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/nodejshouston/npm-machete/issues"
+  },
+  "homepage": "https://github.com/nodejshouston/npm-machete#readme"
+}

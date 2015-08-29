@@ -1,4 +1,11 @@
 /**
+ * Load Environment Variables
+ */
+var Dotenv = require('dotenv');
+var env = process.env.NODE_ENV || 'development';
+Dotenv.config({ path: './env/' + env + '/.env' });
+
+/**
 * Dependencies.
 */
 var Hapi = require('hapi');
