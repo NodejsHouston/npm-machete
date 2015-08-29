@@ -40,7 +40,7 @@ exports.register = function(server, options, next){
                     elasticsearchQuery.filtered.query = {
                         multi_match: {
                             query: request.query.q,
-                            fields: ['name', 'description', 'readme']
+                            fields: ['name', 'description', 'readme', 'keywords']
                         }
                     }
                 }
