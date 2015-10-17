@@ -13,6 +13,7 @@ var Good = require('good');
 var GoodConsole = require('good-console');
 var Boom = require('boom');
 var Search = require('./search');
+var Elasticsearch = require('./search/elasticsearch');
 
 // Create a new server
 var server = new Hapi.Server();
@@ -50,6 +51,9 @@ server.register([
                 events: { ops: '*', request: '*', log: '*', response: '*', 'error': '*' }
             }]
         }
+    },
+    {
+        register: Elasticsearch
     },
     {
         register: Search
