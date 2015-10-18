@@ -29,7 +29,10 @@ describe('Search API', function(){
 
         server.register([
             {
-                register: require('../../server/search/index.js')
+                register: require('../../server/search/elasticsearch.js')
+            },
+            {
+                register: require('../../server/search')
             }
         ], function (err) {
 

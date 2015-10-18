@@ -9,7 +9,6 @@ exports.register = function(server, options, next){
         host: process.env.ELASTICSEARCH_URL
     });
 
-
     server.method({name: 'elasticsearch',
         method: function (requestQuery, next) {
 
@@ -74,7 +73,7 @@ exports.register = function(server, options, next){
 
             elasticsearchClient.search({
                 index: 'npm',
-                size: 500,
+                size: process.env.RESULTSIZE,
                 body: {
                     query: elasticsearchQuery,
                     sort: { _score: 'desc'}
@@ -121,5 +120,5 @@ exports.register = function(server, options, next){
 };
 
 exports.register.attributes = {
-    name: 'elasticsearch-cache'
+    name: 'elasticsearch'
 };
