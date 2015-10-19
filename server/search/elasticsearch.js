@@ -112,8 +112,8 @@ exports.register = function(server, options, next){
         },
         options: {
             cache: {
-                expiresIn: 10000 * 10, // ten minutes
-                staleIn: 7000 * 10, // 7 minutes
+                expiresIn: 36 * 60 * 60 * 1000, // 36 hours
+                staleIn: 22 * 60 * 60 * 1000, // 23 hours
                 staleTimeout: 100,
                 generateTimeout: 10000
             }
