@@ -1,16 +1,19 @@
 {
   "name": "npm-machete",
   "version": "0.1.0",
-  "description": "npm-machete is an npm registry search tool.",
+  "description": "npm-machete is a npm registry search tool.",
   "main": "server/index.js",
   "dependencies": {
+    "bluebird": "~2.10.2",
+    "boom": "~2.8.0",
     "dotenv": "~1.2.0",
     "elasticsearch": "~8.0.1",
-    "boom": "~2.8.0",
+    "github-url-from-git": "~1.4.0",
     "good": "~6.3.0",
     "good-console": "~5.0.3",
     "hapi": "~9.0.3",
-    "joi": "~6.6.1"
+    "joi": "~6.6.1",
+    "wreck": "~6.3.0"
   },
   "devDependencies": {
     "code": "~1.5.0",

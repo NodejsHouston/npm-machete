@@ -2,14 +2,8 @@
 * Dependencies.
 */
 var Joi = require('joi');
-var Boom = require('boom');
-var elasticsearch = require('elasticsearch');
 
 exports.register = function(server, options, next){
-
-    var elasticsearchClient = new elasticsearch.Client({
-        host: process.env.ELASTICSEARCH_URL
-    });
 
     server.route({
         method: 'GET',
@@ -24,89 +18,46 @@ exports.register = function(server, options, next){
                     license: [Joi.string().lowercase(), Joi.array().items(Joi.string().lowercase())],
                 }
             },
+            pre: [
+                { assign: 'elasticsearch', method: server.plugins.elasticsearch.handler },
+                [
+                //     // Executed in parallel
+                    { assign: 'githubBase', method: server.plugins.github.baseHandler },
+                    { assign: 'githubPulls', method: server.plugins.github.pullsHandler },
+                    { assign: 'githubCommits', method: server.plugins.github.commitsHandler },
+                    { assign: 'githubContributors', method: server.plugins.github.contributorsHandler },
+                    { assign: 'npmDownloadsDay', method: server.plugins.npm.downloadsDayHandler },
+                    { assign: 'npmDownloadsWeek', method: server.plugins.npm.downloadsWeekHandler },
+                    { assign: 'npmDownloadsMonth', method: server.plugins.npm.downloadsMonthHandler }
+                ]
+            ],
             handler: function(request, reply){
 
-                var query = request.query.q;
-                var author = request.query.author;
-                var keyword = request.query.keyword;
-                var license = request.query.license;
+                var pre = request.pre;
 
-                var elasticsearchQuery = {
-                    filtered: {
-                    }
-                };
+                var results = pre.elasticsearch.map(function(item, i){
 
-                if (query) {
-                    elasticsearchQuery.filtered.query = {
-                        multi_match: {
-                            query: request.query.q,
-                            fields: ['name', 'description', 'readme', 'keywords']
-                        }
-                    }
-                }
-
-                if (author || keyword || license) {
-
-                    elasticsearchQuery.filtered.filter = {
-                        and: [
-                        ]
+                    item.meta = {
+                        age: pre.githubBase[i].created_at || null,
+                        commitLast: pre.githubBase[i].updated_at || null,
+                        contributors: pre.githubContributors[i] || 0,
+                        commitsQuantity: pre.githubCommits[i] || 0,
+                        downloadsDay: pre.npmDownloadsDay[i] || 0,
+                        downloadsWeek: pre.npmDownloadsWeek[i] || 0,
+                        downloadsMonth: pre.npmDownloadsMonth[i] || 0,
+                        forks: pre.githubBase[i].forks_count || 0,
+                        issuesOpen: pre.githubBase[i].open_issues - pre.githubPulls[i] || 0,
+                        issuesQuantiy: pre.githubBase[i].open_issues || 0,
+                        pullRequestsOpen: pre.githubPulls[i] || 0,
+                        stars: pre.githubBase[i].stargazers_count || 0,
+                        watchers: pre.githubBase[i].watchers || 0,
                     };
 
-                    var filters = elasticsearchQuery.filtered.filter.and;
+                    return item;
 
-                    if (author) {
-                        var authors = [].concat(author);
-                        if (authors.length > 1) {
-                            filters.push({ terms: { author: authors } });
-                        } else {
-                            filters.push({ term: { author: authors[0] } });
-                        }
-                    }
-
-                    if (keyword) {
-                        var keywords = [].concat(keyword);
-                        if (keywords.length > 1) {
-                            filters.push({ terms: { keywords: keywords } });
-                        } else {
-                            filters.push({ term: { keywords: keywords[0] } });
-                        }
-                    }
-
-                    if (license) {
-                        var licenses = [].concat(license);
-                        if (licenses.length > 1) {
-                            filters.push({ terms: { license: licenses } });
-                        } else {
-                            filters.push({ term: { license: licenses[0] } });
-                        }
-                    }
-
-                }
-
-                elasticsearchClient.search({
-                    index: 'npmmachete',
-                    size: 100,
-                    body: {
-                        query: elasticsearchQuery,
-                        sort: { _score: 'desc'}
-                    }
-                }).then(function (body) {
-
-                    var response = {
-                        results: []
-                    };
-
-                    body.hits.hits.forEach(function(item, index){
-                        response.results.push(item._source);
-                    });
-
-                    reply(response);
-
-                }).catch(function (error) {
-                    reply(Boom.badData());
-                    request.log('error', error.message);
-                    console.trace(error.message);
                 });
+
+                reply({results: results});
 
             }
         }
