@@ -1,11 +1,14 @@
 /**
 * Dependencies.
 */
-var elasticsearch = require('elasticsearch');
+var Elasticsearch = require('elasticsearch');
+var Boom = require('boom');
+var Promise = require('bluebird');
+var ParseGitUrl = require('github-url-from-git');
 
 exports.register = function(server, options, next){
 
-    var elasticsearchClient = new elasticsearch.Client({
+    var elasticsearchClient = new Elasticsearch.Client({
         host: process.env.ELASTICSEARCH_URL
     });
 
@@ -80,26 +83,27 @@ exports.register = function(server, options, next){
                 }
             }).then(function (body) {
 
-                var response = {
-                    results: []
-                };
+                var results = [];
 
                 body.hits.hits.forEach(function(item, index){
+
+                    var githubFullUrl = ParseGitUrl(item._source.repository) || ''; // 'https://github.com/username/repo'
+                    var githubUserAndRepo = githubFullUrl.replace(/https:\/\/github.com/g, ''); // '/username/repo'
+
                     var result = {
                         name: item._source.name,
                         description: item._source.description,
                         version: item._source.version,
-                        maintainers: item._source.maintainers,
                         author: item._source.author,
                         license: item._source.license,
-                        repository: item._source.repository,
+                        github: githubUserAndRepo,
                         keywords: item._source.keywords
                     };
 
-                    response.results.push(result);
+                    results.push(result);
                 });
 
-                next(null, response);
+                next(null, results);
 
             }).catch(function(error){
                 next(error);
@@ -114,6 +118,19 @@ exports.register = function(server, options, next){
                 generateTimeout: 10000
             }
         }
+    });
+
+    var elasticsearch = Promise.promisify(server.methods.elasticsearch);
+
+    server.expose('handler', function(request, reply){
+
+        elasticsearch(JSON.stringify(request.query)).spread(function(results){
+            reply(results);
+        }).catch(function (error) {
+            reply(Boom.badData());
+            request.log('error', error.message);
+        });
+
     });
 
     next();

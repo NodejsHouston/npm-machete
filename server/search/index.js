@@ -2,12 +2,8 @@
 * Dependencies.
 */
 var Joi = require('joi');
-var Boom = require('boom');
-var Promise = require('bluebird');
 
 exports.register = function(server, options, next){
-
-    var elasticsearch = Promise.promisify(server.methods.elasticsearch);
 
     server.route({
         method: 'GET',
@@ -22,15 +18,46 @@ exports.register = function(server, options, next){
                     license: [Joi.string().lowercase(), Joi.array().items(Joi.string().lowercase())],
                 }
             },
+            pre: [
+                { assign: 'elasticsearch', method: server.plugins.elasticsearch.handler },
+                [
+                //     // Executed in parallel
+                    { assign: 'githubBase', method: server.plugins.github.baseHandler },
+                    { assign: 'githubPulls', method: server.plugins.github.pullsHandler },
+                    { assign: 'githubCommits', method: server.plugins.github.commitsHandler },
+                    { assign: 'githubContributors', method: server.plugins.github.contributorsHandler },
+                    { assign: 'npmDownloadsDay', method: server.plugins.npm.downloadsDayHandler },
+                    { assign: 'npmDownloadsWeek', method: server.plugins.npm.downloadsWeekHandler },
+                    { assign: 'npmDownloadsMonth', method: server.plugins.npm.downloadsMonthHandler }
+                ]
+            ],
             handler: function(request, reply){
 
-                elasticsearch(JSON.stringify(request.query)).spread(function(results){
-                    reply(results);
-                }).catch(function (error) {
-                    reply(Boom.badData());
-                    request.log('error', error.message);
-                    console.trace(error.message);
+                var pre = request.pre;
+
+                var results = pre.elasticsearch.map(function(item, i){
+
+                    item.meta = {
+                        age: pre.githubBase[i].created_at || null,
+                        commitLast: pre.githubBase[i].updated_at || null,
+                        contributors: pre.githubContributors[i] || 0,
+                        commitsQuantity: pre.githubCommits[i] || 0,
+                        downloadsDay: pre.npmDownloadsDay[i] || 0,
+                        downloadsWeek: pre.npmDownloadsWeek[i] || 0,
+                        downloadsMonth: pre.npmDownloadsMonth[i] || 0,
+                        forks: pre.githubBase[i].forks_count || 0,
+                        issuesOpen: pre.githubBase[i].open_issues - pre.githubPulls[i] || 0,
+                        issuesQuantiy: pre.githubBase[i].open_issues || 0,
+                        pullRequestsOpen: pre.githubPulls[i] || 0,
+                        stars: pre.githubBase[i].stargazers_count || 0,
+                        watchers: pre.githubBase[i].watchers || 0,
+                    };
+
+                    return item;
+
                 });
+
+                reply({results: results});
 
             }
         }

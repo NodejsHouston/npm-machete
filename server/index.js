@@ -14,6 +14,8 @@ var GoodConsole = require('good-console');
 var Boom = require('boom');
 var Search = require('./search');
 var Elasticsearch = require('./search/elasticsearch');
+var Github = require('./search/github');
+var Npm = require('./search/npm');
 
 // Create a new server
 var server = new Hapi.Server();
@@ -54,6 +56,12 @@ server.register([
     },
     {
         register: Elasticsearch
+    },
+    {
+        register: Github
+    },
+    {
+        register: Npm
     },
     {
         register: Search

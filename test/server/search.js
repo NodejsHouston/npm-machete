@@ -12,6 +12,11 @@ var Hapi = require('hapi');
 var Code = require('code');
 var Lab = require('lab');
 
+var Elasticsearch = require('../../server/search/elasticsearch');
+var Github = require('../../server/search/github');
+var Npm = require('../../server/search/npm');
+var Search = require('../../server/search');
+
 // Test shortcuts
 var lab = exports.lab = Lab.script();
 var expect = Code.expect;
@@ -29,10 +34,16 @@ describe('Search API', function(){
 
         server.register([
             {
-                register: require('../../server/search/elasticsearch.js')
+                register: Elasticsearch
             },
             {
-                register: require('../../server/search')
+                register: Github
+            },
+            {
+                register: Npm
+            },
+            {
+                register: Search
             }
         ], function (err) {
 
@@ -213,6 +224,58 @@ describe('Search API', function(){
             expect(response.statusCode).to.equal(200);
             expect(payload.results.length).to.be.above(0);
             expect(licenses).to.part.include(['MIT', 'BSD']);
+
+            done();
+
+        });
+
+    });
+
+    it('shows github info', function(done) {
+
+        var request = {
+            method: 'GET',
+            url: '/api/1/search?q=hapi'
+        };
+
+        server.inject(request, function(response){
+            var payload = JSON.parse(response.payload);
+
+            expect(response.statusCode).to.equal(200);
+            expect(payload.results.length).to.be.above(0);
+            expect(payload.results[0].meta.age).to.exist();
+            expect(payload.results[0].meta.commitLast).to.exist();
+            expect(payload.results[0].meta.forks).to.exist();
+            expect(payload.results[0].meta.issuesOpen).to.exist();
+            expect(payload.results[0].meta.issuesQuantiy).to.exist();
+            expect(payload.results[0].meta.stars).to.exist();
+            expect(payload.results[0].meta.watchers).to.exist();
+            expect(payload.results[0].meta.contributors).to.exist();
+            expect(payload.results[0].meta.commitsQuantity).to.exist();
+            expect(payload.results[0].meta.issuesOpen).to.exist();
+            expect(payload.results[0].meta.pullRequestsOpen).to.exist();
+
+            done();
+
+        });
+
+    });
+
+    it('shows npm download info', function(done) {
+
+        var request = {
+            method: 'GET',
+            url: '/api/1/search?q=hapi'
+        };
+
+        server.inject(request, function(response){
+            var payload = JSON.parse(response.payload);
+
+            expect(response.statusCode).to.equal(200);
+            expect(payload.results.length).to.be.above(0);
+            expect(payload.results[0].meta.downloadsDay).to.exist();
+            expect(payload.results[0].meta.downloadsWeek).to.exist();
+            expect(payload.results[0].meta.downloadsMonth).to.exist();
 
             done();
 
