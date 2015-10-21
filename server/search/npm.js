@@ -23,18 +23,18 @@ exports.register = function(server, options, next){
         options: {
             cache: {
                 expiresIn: 36 * 60 * 60 * 1000, // 36 hours
-                staleIn: 22 * 60 * 60 * 1000, // 23 hours
+                staleIn: 22 * 60 * 60 * 1000, // 22 hours
                 staleTimeout: 100,
                 generateTimeout: 30000
             }
         }
     });
 
-    var httpNpmCache = Promise.promisify(server.methods.httpNpmCache);
+    var httpNpmCachePromise = Promise.promisify(server.methods.httpNpmCache);
 
     var downloadsDayHandler = function(request, reply){
         reply(Promise.all(Promise.map(request.pre.elasticsearch, function(item){
-            return httpNpmCache('https://api.npmjs.org/downloads/point/last-day/' + item.name)
+            return httpNpmCachePromise('https://api.npmjs.org/downloads/point/last-day/' + item.name)
             .spread(function(result){
                 return result.downloads;
             });
@@ -45,7 +45,7 @@ exports.register = function(server, options, next){
 
     var downloadsWeekHandler = function(request, reply){
         reply(Promise.all(Promise.map(request.pre.elasticsearch, function(item){
-            return httpNpmCache('https://api.npmjs.org/downloads/point/last-week/' + item.name)
+            return httpNpmCachePromise('https://api.npmjs.org/downloads/point/last-week/' + item.name)
             .spread(function(result){
                 return result.downloads;
             });
@@ -56,7 +56,7 @@ exports.register = function(server, options, next){
 
     var downloadsMonthHandler = function(request, reply){
         reply(Promise.all(Promise.map(request.pre.elasticsearch, function(item){
-            return httpNpmCache('https://api.npmjs.org/downloads/point/last-month/' + item.name)
+            return httpNpmCachePromise('https://api.npmjs.org/downloads/point/last-month/' + item.name)
             .spread(function(result){
                 return result.downloads;
             });
