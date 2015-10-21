@@ -243,17 +243,18 @@ describe('Search API', function(){
 
             expect(response.statusCode).to.equal(200);
             expect(payload.results.length).to.be.above(0);
-            expect(payload.results[0].meta.age).to.exist();
-            expect(payload.results[0].meta.commitLast).to.exist();
-            expect(payload.results[0].meta.forks).to.exist();
-            expect(payload.results[0].meta.issuesOpen).to.exist();
-            expect(payload.results[0].meta.issuesQuantiy).to.exist();
-            expect(payload.results[0].meta.stars).to.exist();
-            expect(payload.results[0].meta.watchers).to.exist();
-            expect(payload.results[0].meta.contributors).to.exist();
-            expect(payload.results[0].meta.commitsQuantity).to.exist();
-            expect(payload.results[0].meta.issuesOpen).to.exist();
-            expect(payload.results[0].meta.pullRequestsOpen).to.exist();
+            expect(payload.results[0].github.repo).to.exist();
+            expect(payload.results[0].github.age).to.exist();
+            expect(payload.results[0].github.commitLast).to.exist();
+            expect(payload.results[0].github.forks).to.exist();
+            expect(payload.results[0].github.issuesOpen).to.exist();
+            expect(payload.results[0].github.issuesQuantiy).to.exist();
+            expect(payload.results[0].github.stars).to.exist();
+            expect(payload.results[0].github.watchers).to.exist();
+            expect(payload.results[0].github.contributors).to.exist();
+            expect(payload.results[0].github.commitsQuantity).to.exist();
+            expect(payload.results[0].github.issuesOpen).to.exist();
+            expect(payload.results[0].github.pullRequestsOpen).to.exist();
 
             done();
 
@@ -261,7 +262,7 @@ describe('Search API', function(){
 
     });
 
-    it('shows npm download info', function(done) {
+    it('shows npm info', function(done) {
 
         var request = {
             method: 'GET',
@@ -273,9 +274,10 @@ describe('Search API', function(){
 
             expect(response.statusCode).to.equal(200);
             expect(payload.results.length).to.be.above(0);
-            expect(payload.results[0].meta.downloadsDay).to.exist();
-            expect(payload.results[0].meta.downloadsWeek).to.exist();
-            expect(payload.results[0].meta.downloadsMonth).to.exist();
+            expect(payload.results[0].downloadsDay).to.exist();
+            expect(payload.results[0].downloadsWeek).to.exist();
+            expect(payload.results[0].downloadsMonth).to.exist();
+            expect(payload.results[0].stars).to.exist();
 
             done();
 

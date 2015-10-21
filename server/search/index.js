@@ -37,20 +37,23 @@ exports.register = function(server, options, next){
 
                 var results = pre.elasticsearch.map(function(item, i){
 
-                    item.meta = {
+                    item.downloadsDay = pre.npmDownloadsDay[i] || 0;
+                    item.downloadsWeek = pre.npmDownloadsWeek[i] || 0;
+                    item.downloadsMonth = pre.npmDownloadsMonth[i] || 0;
+                    item.stars = pre.elasticsearch[i].stars || 0;
+
+                    item.github = {
+                        repo: item.github || null,
                         age: pre.githubBase[i].created_at || null,
                         commitLast: pre.githubBase[i].updated_at || null,
                         contributors: pre.githubContributors[i] || 0,
                         commitsQuantity: pre.githubCommits[i] || 0,
-                        downloadsDay: pre.npmDownloadsDay[i] || 0,
-                        downloadsWeek: pre.npmDownloadsWeek[i] || 0,
-                        downloadsMonth: pre.npmDownloadsMonth[i] || 0,
                         forks: pre.githubBase[i].forks_count || 0,
                         issuesOpen: pre.githubBase[i].open_issues - pre.githubPulls[i] || 0,
                         issuesQuantiy: pre.githubBase[i].open_issues || 0,
                         pullRequestsOpen: pre.githubPulls[i] || 0,
                         stars: pre.githubBase[i].stargazers_count || 0,
-                        watchers: pre.githubBase[i].watchers || 0,
+                        watchers: pre.githubBase[i].subscribers_count || 0
                     };
 
                     return item;
