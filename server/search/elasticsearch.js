@@ -91,13 +91,17 @@ exports.register = function(server, options, next){
                     var githubUserAndRepo = githubFullUrl.replace(/https:\/\/github.com/g, ''); // '/username/repo'
 
                     var result = {
+                        _score: {
+                            text: item._score
+                        },
                         name: item._source.name,
                         description: item._source.description,
                         version: item._source.version,
                         author: item._source.author,
                         license: item._source.license,
                         github: githubUserAndRepo,
-                        keywords: item._source.keywords
+                        keywords: item._source.keywords,
+                        stars: item._source.stars
                     };
 
                     results.push(result);
@@ -113,18 +117,18 @@ exports.register = function(server, options, next){
         options: {
             cache: {
                 expiresIn: 36 * 60 * 60 * 1000, // 36 hours
-                staleIn: 22 * 60 * 60 * 1000, // 23 hours
+                staleIn: 22 * 60 * 60 * 1000, // 22 hours
                 staleTimeout: 100,
                 generateTimeout: 10000
             }
         }
     });
 
-    var elasticsearch = Promise.promisify(server.methods.elasticsearch);
+    var elasticsearchPromise = Promise.promisify(server.methods.elasticsearch);
 
     server.expose('handler', function(request, reply){
 
-        elasticsearch(JSON.stringify(request.query)).spread(function(results){
+        elasticsearchPromise(JSON.stringify(request.query)).spread(function(results){
             reply(results);
         }).catch(function (error) {
             reply(Boom.badData());

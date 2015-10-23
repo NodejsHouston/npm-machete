@@ -16,9 +16,16 @@ var Search = require('./search');
 var Elasticsearch = require('./search/elasticsearch');
 var Github = require('./search/github');
 var Npm = require('./search/npm');
+var redisCache = require('catbox-redis');
 
 // Create a new server
-var server = new Hapi.Server();
+var server = new Hapi.Server({
+    cache: {
+        engine: redisCache,
+        host: process.env.REDIS_HOST,
+        partition: process.env.CACHE_NAME
+    }
+});
 
 // Setup the server with a host and port
 server.connection({
