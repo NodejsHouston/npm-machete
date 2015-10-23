@@ -3,57 +3,69 @@
 */
 var Wreck = require('wreck');
 var Promise = require('bluebird');
+var Redis = require('redis');
 
 exports.register = function(server, options, next){
 
-    var httpGithubCache = server.cache({
-        expiresIn: 36 * 60 * 60 * 1000, // 36 hours
-        staleIn: 22 * 60 * 60 * 1000, // 22 hours
-        staleTimeout: 100,
-        generateTimeout: 30000,
-        segment: 'github',
-        generateFunc: function (id, next) {
+    Promise.promisifyAll(Redis.RedisClient.prototype);
+    Promise.promisifyAll(Redis.Multi.prototype);
 
-            var httpGithubRequest = function (url, next) {
+    var redisClient = Redis.createClient({
+        host: '127.0.0.1'
+    });
 
-                Wreck.get(url, {
-                    headers: {
-                        'User-Agent': 'NodejsHouston/npm-machete',
-                        Accept: 'application/vnd.github.v3+json',
-                        Authorization: 'token ' + process.env.GITHUBTOKEN
-                    }
-                }, function (err, res, payload) {
-                    if (err) {
-                        server.log(['error', 'wreck'], err);
-                        return next(err);
-                    }
-
-                    return next(null, JSON.parse(payload));
-                });
-
-            };
-
-            httpGithubRequest(id.url, next);
+    redisClient.on('error', function (error) {
+        if (error) {
+            server.log(['error', 'redis'], error);
         }
     });
 
+    var serverMethodName = 'httpGithubCache';
     server.method({
-        name: 'httpGithubCache',
+        name: serverMethodName,
         method: function(url, next){
 
-            httpGithubCache.get({
-                id: url,
-                url: url
-            },
-            function (error, result, cached, log) {
-                if (error) {
-                    server.log(['error', 'wreck'], error);
-                    return next(error);
-                }
+            var headers = {
+                'User-Agent': 'NodejsHouston/npm-machete',
+                Accept: 'application/vnd.github.v3+json',
+                Authorization: 'token ' + process.env.GITHUBTOKEN
+            };
 
-                return next(null, result, cached, log);
-            });
+            var cacheKey = process.env.CACHE_NAME + ':' + encodeURIComponent('#' + serverMethodName) + ':' + encodeURIComponent(encodeURIComponent(url));
+            redisClient.getAsync(cacheKey)
+                .then(function(response){
 
+                    var cache;
+                    if (response) {
+                        cache = JSON.parse(response);
+                        headers['If-None-Match'] = cache.item.etag;
+                    }
+
+                    Wreck.get(url, {
+                        headers: headers
+                    }, function (err, res, payload) {
+                        if (err) {
+                            server.log(['error', 'wreck'], err);
+                            return next(err);
+                        }
+
+                        return next(null, {
+                            etag: res.headers.etag,
+                            payload: res.statusCode === 304 ? cache.item : JSON.parse(payload)
+                        });
+                    });
+
+                });
+
+        },
+        options: {
+            cache: {
+                cache: 'redisCache',
+                expiresIn: 36 * 60 * 60 * 1000, // 36 hours
+                staleIn: 22 * 60 * 60 * 1000, // 22 hours
+                staleTimeout: 100,
+                generateTimeout: 30000
+            }
         }
     });
 
@@ -63,7 +75,7 @@ exports.register = function(server, options, next){
         reply(Promise.all(Promise.map(request.pre.elasticsearch, function(item){
             return httpGithubCachePromise('https://api.github.com/repos' + item.github)
                 .spread(function(result){
-                    return result;
+                    return result.payload;
                 });
         })));
     };
@@ -74,7 +86,7 @@ exports.register = function(server, options, next){
         reply(Promise.all(Promise.map(request.pre.elasticsearch, function(item){
             return httpGithubCachePromise('https://api.github.com/repos' + item.github + '/pulls')
                 .spread(function(result){
-                    return result.length;
+                    return result.payloadlength;
                 });
         })));
     };
@@ -85,7 +97,7 @@ exports.register = function(server, options, next){
         reply(Promise.all(Promise.map(request.pre.elasticsearch, function(item){
             return httpGithubCachePromise('https://api.github.com/repos' + item.github + '/commits')
                 .spread(function(result){
-                    return result.length;
+                    return result.payloadlength;
                 });
         })));
     };
@@ -96,14 +108,16 @@ exports.register = function(server, options, next){
         reply(Promise.all(Promise.map(request.pre.elasticsearch, function(item){
             return httpGithubCachePromise('https://api.github.com/repos' + item.github + '/contributors')
                 .spread(function(result){
-                    return result.length;
+                    return result.payloadlength;
                 });
         })));
     };
 
     server.expose('contributorsHandler', contributorsHandler);
 
-    next();
+    redisClient.once('connect', function () {
+        next();
+    });
 };
 
 exports.register.attributes = {
