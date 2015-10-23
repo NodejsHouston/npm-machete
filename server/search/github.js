@@ -11,7 +11,7 @@ exports.register = function(server, options, next){
     Promise.promisifyAll(Redis.Multi.prototype);
 
     var redisClient = Redis.createClient({
-        host: '127.0.0.1'
+        host: process.env.REDIS_HOST
     });
 
     redisClient.on('error', function (error) {
@@ -74,9 +74,6 @@ exports.register = function(server, options, next){
                                 data: data
                             });
                         }
-
-
-
 
                     });
 
