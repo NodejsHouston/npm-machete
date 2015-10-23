@@ -36,6 +36,9 @@ exports.register = function(server, options, next){
         reply(Promise.all(Promise.map(request.pre.elasticsearch, function(item){
             return httpNpmCachePromise('https://api.npmjs.org/downloads/point/last-day/' + item.name)
             .spread(function(result){
+                if (result.error === 'no stats for this package for this period (0002)') {
+                    return 0;
+                }
                 return result.downloads;
             });
         })));
@@ -47,6 +50,9 @@ exports.register = function(server, options, next){
         reply(Promise.all(Promise.map(request.pre.elasticsearch, function(item){
             return httpNpmCachePromise('https://api.npmjs.org/downloads/point/last-week/' + item.name)
             .spread(function(result){
+                if (result.error === 'no stats for this package for this period (0002)') {
+                    return 0;
+                }
                 return result.downloads;
             });
         })));
@@ -58,6 +64,9 @@ exports.register = function(server, options, next){
         reply(Promise.all(Promise.map(request.pre.elasticsearch, function(item){
             return httpNpmCachePromise('https://api.npmjs.org/downloads/point/last-month/' + item.name)
             .spread(function(result){
+                if (result.error === 'no stats for this package for this period (0002)') {
+                    return 0;
+                }
                 return result.downloads;
             });
         })));
