@@ -22,7 +22,7 @@ var redisCache = require('catbox-redis');
 var server = new Hapi.Server({
     cache: {
         engine: redisCache,
-        host: '127.0.0.1',
+        host: process.env.REDIS_HOST,
         partition: process.env.CACHE_NAME
     }
 });
