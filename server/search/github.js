@@ -28,7 +28,7 @@ exports.register = function(server, options, next){
             var headers = {
                 'User-Agent': 'NodejsHouston/npm-machete',
                 Accept: 'application/vnd.github.v3+json',
-                Authorization: 'token ' + process.env.GITHUBTOKEN
+                Authorization: 'token ' + process.env.GITHUB_TOKEN
             };
 
             var cacheKey = process.env.CACHE_NAME + ':' + encodeURIComponent('#' + serverMethodName) + ':' + encodeURIComponent(encodeURIComponent(url));
@@ -85,7 +85,7 @@ exports.register = function(server, options, next){
                 expiresIn: 36 * 60 * 60 * 1000, // 36 hours
                 staleIn: 22 * 60 * 60 * 1000, // 22 hours
                 staleTimeout: 100,
-                generateTimeout: 30000
+                generateTimeout: 10000
             }
         }
     });

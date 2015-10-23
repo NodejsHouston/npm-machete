@@ -21,6 +21,7 @@ exports.register = function(server, options, next){
             var author = requestQuery.author;
             var keyword = requestQuery.keyword;
             var license = requestQuery.license;
+            var size = requestQuery.size;
 
             var elasticsearchQuery = {
                 filtered: {
@@ -76,7 +77,7 @@ exports.register = function(server, options, next){
 
             elasticsearchClient.search({
                 index: 'npm',
-                size: process.env.RESULTSIZE,
+                size: size,
                 body: {
                     query: elasticsearchQuery,
                     sort: { _score: 'desc'}
