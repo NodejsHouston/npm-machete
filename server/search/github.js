@@ -32,6 +32,7 @@ exports.register = function(server, options, next){
             };
 
             var cacheKey = process.env.CACHE_NAME + ':' + encodeURIComponent('#' + serverMethodName) + ':' + encodeURIComponent(encodeURIComponent(url));
+
             redisClient.getAsync(cacheKey)
                 .then(function(response){
 
@@ -49,10 +50,34 @@ exports.register = function(server, options, next){
                             return next(err);
                         }
 
-                        return next(null, {
-                            etag: res.headers.etag,
-                            payload: res.statusCode === 304 ? cache.item : JSON.parse(payload)
-                        });
+                        if (res.statusCode === 304) {
+
+                            return next(null, {
+                                etag: res.headers.etag,
+                                data: cache.item.data
+                            });
+
+                        } else {
+
+                            var data = JSON.parse(payload);
+
+                            if (Array.isArray(data)) {
+                                if (data.length) {
+                                    data = data.length;
+                                } else {
+                                    data = 0;
+                                }
+                            }
+
+                            return next(null, {
+                                etag: res.headers.etag,
+                                data: data
+                            });
+                        }
+
+
+
+
                     });
 
                 });
@@ -74,7 +99,7 @@ exports.register = function(server, options, next){
         reply(Promise.all(Promise.map(request.pre.elasticsearch, function(item){
             return httpGithubCachePromise('https://api.github.com/repos' + item.github)
                 .spread(function(result){
-                    return result.payload;
+                    return result.data;
                 });
         })));
     };
@@ -85,7 +110,7 @@ exports.register = function(server, options, next){
         reply(Promise.all(Promise.map(request.pre.elasticsearch, function(item){
             return httpGithubCachePromise('https://api.github.com/repos' + item.github + '/pulls')
                 .spread(function(result){
-                    return result.payloadlength;
+                    return result.data;
                 });
         })));
     };
@@ -96,7 +121,7 @@ exports.register = function(server, options, next){
         reply(Promise.all(Promise.map(request.pre.elasticsearch, function(item){
             return httpGithubCachePromise('https://api.github.com/repos' + item.github + '/commits')
                 .spread(function(result){
-                    return result.payloadlength;
+                    return result.data;
                 });
         })));
     };
@@ -107,7 +132,7 @@ exports.register = function(server, options, next){
         reply(Promise.all(Promise.map(request.pre.elasticsearch, function(item){
             return httpGithubCachePromise('https://api.github.com/repos' + item.github + '/contributors')
                 .spread(function(result){
-                    return result.payloadlength;
+                    return result.data;
                 });
         })));
     };
