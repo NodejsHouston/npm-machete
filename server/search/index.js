@@ -16,6 +16,7 @@ exports.register = function(server, options, next){
                     author: [Joi.string().lowercase(), Joi.array().items(Joi.string().lowercase())],
                     keyword: [Joi.string().lowercase(), Joi.array().items(Joi.string().lowercase())],
                     license: [Joi.string().lowercase(), Joi.array().items(Joi.string().lowercase())],
+                    size: Joi.number().min(1).max(400).default(process.env.RESULT_SIZE)
                 }
             },
             pre: [

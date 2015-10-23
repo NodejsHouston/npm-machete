@@ -25,7 +25,7 @@ exports.register = function(server, options, next){
                 expiresIn: 36 * 60 * 60 * 1000, // 36 hours
                 staleIn: 22 * 60 * 60 * 1000, // 22 hours
                 staleTimeout: 100,
-                generateTimeout: 30000
+                generateTimeout: 10000
             }
         }
     });
