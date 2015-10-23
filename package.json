@@ -24,7 +24,7 @@
   },
   "scripts": {
     "start": "node server",
-    "test": "lab -a code",
+    "test": "lab -a code --timeout 5000",
     "dev": "nodemon server --verbose",
     "pm2-start": "NODE_ENV=production pm2 start server --name 'npm-machete'",
     "pm2-restart": "NODE_ENV=production pm2 restart npm-machete",
